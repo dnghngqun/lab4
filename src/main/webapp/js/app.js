@@ -13,7 +13,7 @@ function syncCartWithServer() {
     console.log('Syncing cart with server:', localCart);
 
     if (localCart.length > 0) {
-        fetch('cart/sync', {
+        return fetch('cart/sync', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -26,13 +26,16 @@ function syncCartWithServer() {
                 if (data.status === 'success') {
                     updateCartBadge();
                 }
+                return data;
             })
             .catch(error => {
                 console.error('Sync error:', error);
+                throw error;
             });
+    } else {
+        return Promise.resolve({status: 'success', cartSize: 0});
     }
 }
-
 // Modal functions
 function openAddModal() {
     document.getElementById('addModal').style.display = 'block';

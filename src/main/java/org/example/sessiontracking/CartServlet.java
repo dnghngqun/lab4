@@ -20,38 +20,40 @@ public class CartServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String action = req.getServletPath();
+        HttpSession session = req.getSession();
+
+        // Lấy hoặc tạo CartBean
+        CartBean cartBean = (CartBean) session.getAttribute("cartBean");
+        if (cartBean == null) {
+            cartBean = new CartBean();
+            session.setAttribute("cartBean", cartBean);
+        }
 
         switch (action) {
             case "/cart/add":
-                addToCart(req, resp);
+                addToCart(req, resp, cartBean);
                 break;
             case "/cart/sync":
-                syncCart(req, resp);
+                syncCart(req, resp, cartBean);
                 break;
         }
     }
 
-    private void addToCart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void addToCart(HttpServletRequest req, HttpServletResponse resp, CartBean cartBean) throws IOException {
         int productId = Integer.parseInt(req.getParameter("productId"));
         Product product = ProductServlet.getProduct(productId);
 
         if (product != null) {
-            HttpSession session = req.getSession();
-            @SuppressWarnings("unchecked")
-            List<Product> cart = (List<Product>) session.getAttribute("cart");
-
-            if (cart == null) {
-                cart = new ArrayList<>();
-                session.setAttribute("cart", cart);
-            }
-            cart.add(product);
+            cartBean.addProduct(product);
             resp.setStatus(HttpServletResponse.SC_OK);
+            resp.getWriter().write("{\"status\":\"success\",\"cartSize\":" + cartBean.getItemCount() + "}");
         } else {
             resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.getWriter().write("{\"status\":\"error\",\"message\":\"Product not found\"}");
         }
     }
 
-    private void syncCart(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+    private void syncCart(HttpServletRequest req, HttpServletResponse resp, CartBean cartBean) throws IOException {
         try {
             StringBuilder jsonBuilder = new StringBuilder();
             try (BufferedReader reader = req.getReader()) {
@@ -64,20 +66,18 @@ public class CartServlet extends HttpServlet {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode cartArray = mapper.readTree(jsonBuilder.toString());
 
-            HttpSession session = req.getSession();
-            List<Product> cart = new ArrayList<>();
-
+            List<Product> localProducts = new ArrayList<>();
             for (JsonNode item : cartArray) {
                 int productId = item.get("id").asInt();
                 Product product = ProductServlet.getProduct(productId);
                 if (product != null) {
-                    cart.add(product);
+                    localProducts.add(product);
                 }
             }
 
-            session.setAttribute("cart", cart);
+            cartBean.syncWithLocalStorage(localProducts);
             resp.setStatus(HttpServletResponse.SC_OK);
-            resp.getWriter().write("{\"status\":\"success\",\"cartSize\":" + cart.size() + "}");
+            resp.getWriter().write("{\"status\":\"success\",\"cartSize\":" + cartBean.getItemCount() + "}");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -91,22 +91,22 @@ public class CartServlet extends HttpServlet {
         String action = req.getServletPath();
         HttpSession session = req.getSession();
 
+        CartBean cartBean = (CartBean) session.getAttribute("cartBean");
+        if (cartBean == null) {
+            cartBean = new CartBean();
+            session.setAttribute("cartBean", cartBean);
+        }
+
         switch (action) {
             case "/cart/clear":
-                session.removeAttribute("cart");
+                cartBean.clear();
                 resp.sendRedirect(req.getContextPath() + "/cart");
                 return;
             case "/cart/remove":
                 String indexStr = req.getParameter("index");
                 if (indexStr != null) {
-                    @SuppressWarnings("unchecked")
-                    List<Product> cart = (List<Product>) session.getAttribute("cart");
-                    if (cart != null) {
-                        int index = Integer.parseInt(indexStr);
-                        if (index >= 0 && index < cart.size()) {
-                            cart.remove(index);
-                        }
-                    }
+                    int index = Integer.parseInt(indexStr);
+                    cartBean.removeProduct(index);
                 }
                 resp.sendRedirect(req.getContextPath() + "/cart");
                 return;

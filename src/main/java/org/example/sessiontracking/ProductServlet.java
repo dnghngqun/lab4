@@ -16,7 +16,6 @@ public class ProductServlet extends HttpServlet {
     private static final AtomicInteger productIdCounter = new AtomicInteger(1);
 
     static {
-        // Sample products với URL ảnh thực tế
         products.put(1, new Product(1, "iPhone 15", 999.99, "Latest iPhone",
                 "https://cdn2.cellphones.com.vn/x/media/catalog/product/i/p/iphone-15-plus-256gb_3.png"));
         products.put(2, new Product(2, "Samsung Galaxy S24", 899.99, "Latest Samsung",
@@ -24,7 +23,6 @@ public class ProductServlet extends HttpServlet {
         productIdCounter.set(3);
     }
 
-    // Thêm method static để CartServlet có thể truy cập
     public static Product getProduct(int id) {
         return products.get(id);
     }

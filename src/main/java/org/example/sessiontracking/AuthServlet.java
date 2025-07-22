@@ -73,13 +73,17 @@ public class AuthServlet extends HttpServlet {
             session.setAttribute("user", user);
             session.setMaxInactiveInterval(60); // 1 phút
 
+            // Tạo CartBean mới cho session
+            CartBean cartBean = new CartBean();
+            session.setAttribute("cartBean", cartBean);
+
             // Set cookie
             Cookie cookie = new Cookie("username", username);
             cookie.setMaxAge(60 * 60 * 24); // 1 ngày
             cookie.setPath("/");
             resp.addCookie(cookie);
 
-            resp.sendRedirect("dashboard.jsp");
+            resp.sendRedirect("dashboard.jsp?loginSuccess=true");
         } else {
             resp.sendRedirect("login.jsp?error=invalid");
         }

@@ -25,7 +25,7 @@
       <div class="alert alert-success">Đăng ký thành công! Vui lòng đăng nhập.</div>
     </c:if>
 
-    <form action="login" method="post">
+    <form action="login" method="post" onsubmit="handleLoginSubmit(event)">
       <div class="form-group">
         <label for="username">Tên đăng nhập:</label>
         <input type="text" id="username" name="username" required>
@@ -45,5 +45,28 @@
     </div>
   </div>
 </div>
+
+<script src="js/app.js"></script>
+<script>
+  function handleLoginSubmit(event) {
+    // Lưu localStorage cart trước khi submit
+    const localCart = getCartFromLocalStorage();
+    if (localCart.length > 0) {
+      sessionStorage.setItem('pendingSyncCart', JSON.stringify(localCart));
+    }
+  }
+
+  // Check nếu đã login và có cart cần sync
+  document.addEventListener('DOMContentLoaded', function() {
+    const pendingCart = sessionStorage.getItem('pendingSyncCart');
+    if (pendingCart && window.location.search.includes('error')) {
+      // Login failed, keep pending cart
+      return;
+    }
+
+    // Clear pending cart if on login page
+    sessionStorage.removeItem('pendingSyncCart');
+  });
+</script>
 </body>
 </html>
