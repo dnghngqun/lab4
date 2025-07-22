@@ -35,6 +35,6 @@ public class User {
     public void setLoginTime(long loginTime) { this.loginTime = loginTime; }
 
     public boolean isSessionExpired() {
-        return System.currentTimeMillis() - loginTime > 60000;
+        return System.currentTimeMillis() - loginTime > 120000;
     }
 }

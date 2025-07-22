@@ -33,7 +33,6 @@
         <p><strong>Tên đăng nhập:</strong> ${sessionScope.user.username}</p>
         <p><strong>Họ và tên:</strong> ${sessionScope.user.fullName}</p>
         <p><strong>Email:</strong> ${sessionScope.user.email}</p>
-        <p><strong>Thời gian đăng nhập:</strong> ${sessionScope.user.loginTime}</p>
     </div>
 
     <div class="stats-grid">
